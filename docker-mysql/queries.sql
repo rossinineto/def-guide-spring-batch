@@ -14,3 +14,13 @@ delete from spring_batch.BATCH_JOB_EXECUTION_CONTEXT;
 delete from spring_batch.BATCH_JOB_EXECUTION_PARAMS;
 delete from spring_batch.BATCH_JOB_EXECUTION;
 delete from spring_batch.BATCH_JOB_INSTANCE;
+
+select * from spring_batch.BATCH_STEP_EXECUTION_SEQ;
+select * from spring_batch.BATCH_STEP_EXECUTION_CONTEXT;
+select * from spring_batch.BATCH_STEP_EXECUTION;
+select * from spring_batch.BATCH_JOB_SEQ;
+select * from spring_batch.BATCH_JOB_EXECUTION_SEQ;
+select * from spring_batch.BATCH_JOB_EXECUTION_CONTEXT;
+select * from spring_batch.BATCH_JOB_EXECUTION_PARAMS;
+select * from spring_batch.BATCH_JOB_EXECUTION;
+select * from spring_batch.BATCH_JOB_INSTANCE;
