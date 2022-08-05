@@ -15,25 +15,26 @@
  */
 package com.example.Chapter04.jobs;
 
-import java.util.concurrent.Callable;
-
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.step.tasklet.CallableTaskletAdapter;
+import org.springframework.batch.core.job.flow.JobExecutionDecider;
+import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import com.example.Chapter04.batch.RandomDecider;
 
 /**
  * @author Michael Minella
  */
 @EnableBatchProcessing
 @Configuration
-public class CallableTaskletConfiguration {
+public class ConditionalJobClass {
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -42,36 +43,64 @@ public class CallableTaskletConfiguration {
 	private StepBuilderFactory stepBuilderFactory;
 
 	@Bean
-	public Job callableJob() {
-		return this.jobBuilderFactory.get("callableJob")
-				.start(callableStep())
-				.build();
+	public Tasklet passTasklet() {
+		return (contribution, chunkContext) -> {
+//			return RepeatStatus.FINISHED;
+			throw new RuntimeException("Causing a failure");
+		};
 	}
 
 	@Bean
-	public Step callableStep() {
-		return this.stepBuilderFactory.get("callableStep")
-				.tasklet(tasklet())
-				.build();
-	}
-
-	@Bean
-	public Callable<RepeatStatus> callableObject() {
-		return () -> {
-			System.out.println("This was executed in another thread");
-
+	public Tasklet successTasklet() {
+		return (contribution, context) -> {
+			System.out.println("Success!");
 			return RepeatStatus.FINISHED;
 		};
 	}
 
 	@Bean
-	public CallableTaskletAdapter tasklet() {
-		CallableTaskletAdapter callableTaskletAdapter =
-				new CallableTaskletAdapter();
+	public Tasklet failTasklet() {
+		return (contribution, context) -> {
+			System.out.println("Failure!");
+			return RepeatStatus.FINISHED;
+		};
+	}
 
-		callableTaskletAdapter.setCallable(callableObject());
+	@Bean
+	public Job conditionalJob() {
+		return this.jobBuilderFactory.get("conditionalJob")
+				.start(firstStep())
+				.on("FAILED").stopAndRestart(successStep())
+				.from(firstStep())
+					.on("*").to(successStep())
+				.end()
+				.build();
+	}
 
-		return callableTaskletAdapter;
+	@Bean
+	public Step firstStep() {
+		return this.stepBuilderFactory.get("firstStep")
+				.tasklet(passTasklet())
+				.build();
+	}
+
+	@Bean
+	public Step successStep() {
+		return this.stepBuilderFactory.get("successStep")
+				.tasklet(successTasklet())
+				.build();
+	}
+
+	@Bean
+	public Step failureStep() {
+		return this.stepBuilderFactory.get("failureStep")
+				.tasklet(failTasklet())
+				.build();
+	}
+
+	@Bean
+	public JobExecutionDecider decider() {
+		return new RandomDecider();
 	}
 
 }

@@ -15,18 +15,22 @@
  */
 package com.example.Chapter04.jobs;
 
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.step.tasklet.SystemCommandTasklet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Michael Minella
  */
 @EnableBatchProcessing
-@SpringBootApplication
-public class ExecutionContextJob {
+@Configuration
+public class SystemCommandJobClass {
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -34,27 +38,29 @@ public class ExecutionContextJob {
 	@Autowired
 	private StepBuilderFactory stepBuilderFactory;
 
-//	@Bean
-//	public Job helloWorldBatchJob() {
-//		return this.jobBuilderFactory.get("helloWorldBatchJob")
-//				.start(helloWorldStep())
-//				.build();
-//	}
-//
-//	@Bean
-//	public Step helloWorldStep() {
-//		return this.stepBuilderFactory.get("helloWorldStep")
-//				.tasklet(tasklet())
-//				.build();
-//	}
+	@Bean
+	public Job systemCommandJob() {
+		return this.jobBuilderFactory.get("systemCommandJob")
+				.start(systemCommandStepSystemCommandJobClass())
+				.build();
+	}
 
-//	@StepScope
-//	@Bean
-//	public HelloWorldTasklet tasklet() {
-//		return new HelloWorldTasklet();
-//	}
+	@Bean
+	public Step systemCommandStepSystemCommandJobClass() {
+		return this.stepBuilderFactory.get("systemCommandStep")
+				.tasklet(systemCommandTaskletSystemCommandJobClass())
+				.build();
+	}
 
-//	public static void main(String[] args) {
-//		SpringApplication.run(ExecutionContextJob.class, args);
-//	}
+	@Bean
+	public SystemCommandTasklet systemCommandTaskletSystemCommandJobClass() {
+		SystemCommandTasklet systemCommandTasklet = new SystemCommandTasklet();
+
+		systemCommandTasklet.setCommand("rm -rf /tmp.txt");
+		systemCommandTasklet.setTimeout(5000);
+		systemCommandTasklet.setInterruptOnCancel(true);
+
+		return systemCommandTasklet;
+	}
+	
 }

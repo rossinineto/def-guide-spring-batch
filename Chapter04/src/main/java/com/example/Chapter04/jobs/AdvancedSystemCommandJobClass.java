@@ -20,21 +20,19 @@ import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
-import org.springframework.batch.core.configuration.annotation.StepScope;
-import org.springframework.batch.core.step.tasklet.MethodInvokingTaskletAdapter;
+import org.springframework.batch.core.step.tasklet.SimpleSystemProcessExitCodeMapper;
+import org.springframework.batch.core.step.tasklet.SystemCommandTasklet;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import com.example.Chapter04.service.CustomService;
+import org.springframework.core.task.SimpleAsyncTaskExecutor;
 
 /**
  * @author Michael Minella
  */
 @EnableBatchProcessing
 @Configuration
-public class MethodInvokingTaskletConfiguration {
+public class AdvancedSystemCommandJobClass {
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -43,37 +41,43 @@ public class MethodInvokingTaskletConfiguration {
 	private StepBuilderFactory stepBuilderFactory;
 
 	@Bean
-	public Job methodInvokingJob() {
-		return this.jobBuilderFactory.get("methodInvokingJob")
-				.start(methodInvokingStep())
+	public Job advancedSystemCommandJob() {
+		return this.jobBuilderFactory.get("systemCommandJob")
+				.start(systemCommandStep())
 				.build();
 	}
 
 	@Bean
-	public Step methodInvokingStep() {
-		return this.stepBuilderFactory.get("methodInvokingStep")
-				.tasklet(methodInvokingTasklet(null))
+	public Step systemCommandStep() {
+		return this.stepBuilderFactory.get("systemCommandStep")
+				.tasklet(systemCommandTasklet())
 				.build();
 	}
 
-	@StepScope
 	@Bean
-	public MethodInvokingTaskletAdapter methodInvokingTasklet(
-			@Value("#{jobParameters['message']}") String message) {
+	public SystemCommandTasklet systemCommandTasklet() {
+		SystemCommandTasklet tasklet = new SystemCommandTasklet();
 
-		MethodInvokingTaskletAdapter methodInvokingTaskletAdapter =
-				new MethodInvokingTaskletAdapter();
+		tasklet.setCommand("touch tmp.txt");
+		tasklet.setTimeout(5000);
+		tasklet.setInterruptOnCancel(true);
 
-		methodInvokingTaskletAdapter.setTargetObject(service());
-		methodInvokingTaskletAdapter.setTargetMethod("serviceMethod");
-		methodInvokingTaskletAdapter.setArguments(
-				new String[] {message});
+		// Change this directory to something appropriate for your environment
+		tasklet.setWorkingDirectory("/Users/rossi/Documents/repositorios_estudo/def-guide-spring-batch");
 
-		return methodInvokingTaskletAdapter;
+		tasklet.setSystemProcessExitCodeMapper(touchCodeMapper());
+		tasklet.setTerminationCheckInterval(5000);
+		tasklet.setTaskExecutor(new SimpleAsyncTaskExecutor());
+		tasklet.setEnvironmentParams(new String[] {
+				"JAVA_HOME=/java",
+				"BATCH_HOME=/Users/batch"});
+
+		return tasklet;
 	}
 
 	@Bean
-	public CustomService service() {
-		return new CustomService();
+	public SimpleSystemProcessExitCodeMapper touchCodeMapper() {
+		return new SimpleSystemProcessExitCodeMapper();
 	}
+
 }

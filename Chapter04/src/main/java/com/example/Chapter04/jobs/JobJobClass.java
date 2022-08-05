@@ -24,16 +24,15 @@ import org.springframework.batch.core.step.job.DefaultJobParametersExtractor;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.SpringApplication;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 
 /**
  * @author Michael Minella
  */
 @EnableBatchProcessing
-@SpringBootApplication
-public class JobJob {
+@Configuration
+public class JobJobClass {
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -125,8 +124,5 @@ public class JobJob {
 				.tasklet(runBatchTasklet())
 				.build();
 	}
-
-	public static void main(String[] args) {
-		SpringApplication.run(HelloWorldJob.class, args);
-	}
+	
 }

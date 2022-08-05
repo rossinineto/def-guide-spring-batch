@@ -15,18 +15,24 @@
  */
 package com.example.Chapter04.jobs;
 
+import org.springframework.batch.core.Job;
+import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.example.Chapter04.batch.HelloWorldTasklet;
 
 /**
  * @author Michael Minella
  */
 @EnableBatchProcessing
-@SpringBootApplication
-public class SystemCommandJob {
+@Configuration
+public class ExecutionContextJobClass {
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -34,32 +40,24 @@ public class SystemCommandJob {
 	@Autowired
 	private StepBuilderFactory stepBuilderFactory;
 
-//	@Bean
-//	public Job job() {
-//		return this.jobBuilderFactory.get("systemCommandJob")
-//				.start(systemCommandStep())
-//				.build();
-//	}
-//
-//	@Bean
-//	public Step systemCommandStep() {
-//		return this.stepBuilderFactory.get("systemCommandStep")
-//				.tasklet(systemCommandTasklet())
-//				.build();
-//	}
-//
-//	@Bean
-//	public SystemCommandTasklet systemCommandTasklet() {
-//		SystemCommandTasklet systemCommandTasklet = new SystemCommandTasklet();
-//
-//		systemCommandTasklet.setCommand("rm -rf /tmp.txt");
-//		systemCommandTasklet.setTimeout(5000);
-//		systemCommandTasklet.setInterruptOnCancel(true);
-//
-//		return systemCommandTasklet;
-//	}
-//
-//	public static void main(String[] args) {
-//		SpringApplication.run(SystemCommandJob.class, args);
-//	}
+	@Bean
+	public Job helloWorldBatchJob() {
+		return this.jobBuilderFactory.get("helloWorldBatchJob")
+				.start(helloWorldStep())
+				.build();
+	}
+
+	@Bean
+	public Step helloWorldStep() {
+		return this.stepBuilderFactory.get("helloWorldStep")
+				.tasklet(taskletExecutionContext())
+				.build();
+	}
+
+	@StepScope
+	@Bean
+	public HelloWorldTasklet taskletExecutionContext() {
+		return new HelloWorldTasklet();
+	}
+
 }

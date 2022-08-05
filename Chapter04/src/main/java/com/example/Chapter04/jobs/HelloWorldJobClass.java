@@ -17,8 +17,7 @@ package com.example.Chapter04.jobs;
 
 import java.util.Arrays;
 
-import com.example.Chapter04.batch.ParameterValidator;
-
+import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -26,19 +25,24 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.CompositeJobParametersValidator;
 import org.springframework.batch.core.job.DefaultJobParametersValidator;
+import org.springframework.batch.core.listener.JobListenerFactoryBean;
 import org.springframework.batch.core.step.tasklet.Tasklet;
 import org.springframework.batch.repeat.RepeatStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+import com.example.Chapter04.batch.DailyJobTimestamper;
+import com.example.Chapter04.batch.JobLoggerListener;
+import com.example.Chapter04.batch.ParameterValidator;
 
 /**
  * @author Michael Minella
  */
 @EnableBatchProcessing
-@SpringBootApplication
-public class HelloWorldJob {
+@Configuration
+public class HelloWorldJobClass {
 
 	@Autowired
 	private JobBuilderFactory jobBuilderFactory;
@@ -65,24 +69,24 @@ public class HelloWorldJob {
 		return validator;
 	}
 
-//	@Bean
-//	public Job job() {
-//
-//		return this.jobBuilderFactory.get("basicJob")
-//				.start(step1())
-//				.validator(validator())
-//				.incrementer(new DailyJobTimestamper())
-////				.listener(new JobLoggerListener())
-//				.listener(JobListenerFactoryBean.getListener(new JobLoggerListener()))
-//				.build();
-//	}
-//
-//	@Bean
-//	public Job job() {
-//		return this.jobBuilderFactory.get("basicJob")
-//				.start(step1())
-//				.build();
-//	}
+	@Bean
+	public Job helloWorldJob() {
+
+		return this.jobBuilderFactory.get("basicJob")
+				.start(step1())
+				.validator(validator())
+				.incrementer(new DailyJobTimestamper())
+//				.listener(new JobLoggerListener())
+				.listener(JobListenerFactoryBean.getListener(new JobLoggerListener()))
+				.build();
+	}
+
+	// @Bean
+	// public Job helloWorldJob() {
+	// 	return this.jobBuilderFactory.get("basicJob")
+	// 			.start(step1())
+	// 			.build();
+	// }
 
 	@Bean
 	public Step step1() {
@@ -108,20 +112,16 @@ public class HelloWorldJob {
 			};
 	}
 
-//	@Bean
-//	public Tasklet helloWorldTasklet() {
-//
-//		return (contribution, chunkContext) -> {
-//				String name = (String) chunkContext.getStepContext()
-//					.getJobParameters()
-//					.get("name");
-//
-//				System.out.println(String.format("Hello, %s!", name));
-//				return RepeatStatus.FINISHED;
-//			};
-//	}
+	@Bean
+	public Tasklet helloWorldTasklet() {
 
-//	public static void main(String[] args) {
-//		SpringApplication.run(HelloWorldJob.class, args);
-//	}
+		return (contribution, chunkContext) -> {
+				String name = (String) chunkContext.getStepContext()
+					.getJobParameters()
+					.get("name");
+
+				System.out.println(String.format("Hello, %s!", name));
+				return RepeatStatus.FINISHED;
+			};
+	}
 }
